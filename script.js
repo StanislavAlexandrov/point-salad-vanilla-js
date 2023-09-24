@@ -117,6 +117,14 @@ document.addEventListener('DOMContentLoaded', function () {
 
     function handleCardClick(event) {
         const cardElement = event.target;
+        // Check if this card is already selected
+        if (
+            selectedVegetables.some(
+                (selected) => selected.cardElement === cardElement
+            )
+        ) {
+            return;
+        }
         const cardData = JSON.parse(cardElement.dataset.info);
         const columnIndex = Array.from(board.children).indexOf(cardElement) % 3;
 
@@ -160,12 +168,17 @@ document.addEventListener('DOMContentLoaded', function () {
                     board.replaceChild(newCardElement, selected.cardElement);
 
                     // Update the top row with a new scoring condition card
-                    const newTopCard = shuffledCards.pop();
-                    const newTopCardElement = createCard(
-                        newTopCard.condition,
-                        newTopCard
-                    );
-                    board.replaceChild(newTopCardElement, topRowCard);
+                    if (shuffledCards.length > 0) {
+                        const newTopCard = shuffledCards.pop();
+                        const newTopCardElement = createCard(
+                            newTopCard.condition,
+                            newTopCard
+                        );
+                        board.replaceChild(newTopCardElement, topRowCard);
+                    } else {
+                        // Handle the situation when no cards are left, perhaps by removing the card or showing a message
+                        topRowCard.remove();
+                    }
                 });
                 // Reset the selectedVegetables array
                 selectedVegetables = [];
