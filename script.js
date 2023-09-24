@@ -173,5 +173,31 @@ document.addEventListener('DOMContentLoaded', function () {
             line.textContent = `${vegetable}: ${count}`;
             playerDisplayElement.appendChild(line);
         }
+        const score = calculateScore(player1);
+        const scoreElement = document.getElementById('score'); // Assuming you have an element with the id 'score' to display the player's score
+        scoreElement.textContent = `Score: ${score}`;
     }
 });
+
+function calculateScore(player) {
+    let score = 0;
+
+    player.conditions.forEach((condition) => {
+        if (condition === '2 lettuces = 5 points') {
+            score += Math.floor(player.vegetables.lettuce / 2) * 5;
+        }
+        if (condition === '3 peppers = 8 points') {
+            score += Math.floor(player.vegetables.peppers / 3) * 8;
+        }
+        if (
+            condition ===
+            'each cabbage 2 points and each tomato 2 points and each lettuce minus 4 points'
+        ) {
+            score += player.vegetables.cabbage * 2;
+            score += player.vegetables.tomatoes * 2;
+            score -= player.vegetables.lettuce * 4;
+        }
+    });
+
+    return score;
+}
