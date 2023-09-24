@@ -1,6 +1,21 @@
 document.addEventListener('DOMContentLoaded', function () {
     let selectedVegetables = [];
 
+    const player1 = {
+        name: 'Player 1',
+        conditions: [],
+        vegetables: {
+            carrots: 0,
+            cabbage: 0,
+            peppers: 0,
+            tomatoes: 0,
+            lettuce: 0,
+            onions: 0,
+        },
+    };
+    const player1DisplayElement = document.getElementById('player1Display');
+    updatePlayerDisplay(player1, player1DisplayElement);
+
     const doubleSidedCards = [
         { vegetable: 'carrots', condition: '2 lettuces = 5 points' },
         { vegetable: 'carrots', condition: '3 peppers = 8 points' },
@@ -90,32 +105,28 @@ document.addEventListener('DOMContentLoaded', function () {
 
         if (cardElement.textContent === cardData.condition) {
             // Handle the scoring condition card
-            console.log(`Kept scoring condition: ${cardData.condition}`);
             const newCard = shuffledCards.pop();
             const newCardElement = createCard(newCard.condition, newCard);
             board.replaceChild(newCardElement, cardElement);
+            // Add condition to player1 and update display
+            player1.conditions.push(cardData.condition);
         } else {
             // Handle the vegetable cards
             selectedVegetables.push({ cardElement, columnIndex });
             cardElement.style.color = 'green';
 
             if (selectedVegetables.length === 2) {
+                // Add vegetables to player1
+                selectedVegetables.forEach((selected) => {
+                    const vegetable = JSON.parse(
+                        selected.cardElement.dataset.info
+                    ).vegetable;
+                    player1.vegetables[vegetable]++;
+                });
                 // Process the picked vegetables
-                console.log(
-                    `Kept vegetables: ${selectedVegetables
-                        .map(
-                            (selected) =>
-                                JSON.parse(selected.cardElement.dataset.info)
-                                    .vegetable
-                        )
-                        .join(', ')}`
-                );
-
-                // Replace the picked vegetable cards with flipped top-row cards
                 selectedVegetables.forEach((selected) => {
                     const topRowCard = board.children[selected.columnIndex];
                     const topCardData = JSON.parse(topRowCard.dataset.info);
-
                     const newCardElement = createCard(
                         topCardData.vegetable,
                         topCardData
@@ -130,10 +141,37 @@ document.addEventListener('DOMContentLoaded', function () {
                     );
                     board.replaceChild(newTopCardElement, topRowCard);
                 });
-
                 // Reset the selectedVegetables array
                 selectedVegetables = [];
             }
+        }
+
+        // Update player display irrespective of whether a condition or vegetable was selected
+        updatePlayerDisplay(player1, player1DisplayElement);
+    }
+
+    updatePlayerDisplay(player1, player1DisplayElement);
+    function updatePlayerDisplay(player, playerDisplayElement) {
+        // Clear existing display
+        playerDisplayElement.innerHTML = '';
+
+        // Add title
+        const title = document.createElement('h3');
+        title.textContent = player.name;
+        playerDisplayElement.appendChild(title);
+
+        // Add conditions
+        player.conditions.forEach((condition, index) => {
+            const line = document.createElement('p');
+            line.textContent = `Line ${index + 1}: ${condition}`;
+            playerDisplayElement.appendChild(line);
+        });
+
+        // Add vegetables
+        for (const [vegetable, count] of Object.entries(player.vegetables)) {
+            const line = document.createElement('p');
+            line.textContent = `${vegetable}: ${count}`;
+            playerDisplayElement.appendChild(line);
         }
     }
 });
