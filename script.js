@@ -167,17 +167,19 @@ document.addEventListener('DOMContentLoaded', function () {
                     );
                     board.replaceChild(newCardElement, selected.cardElement);
 
-                    // Update the top row with a new scoring condition card
-                    if (shuffledCards.length > 0) {
-                        const newTopCard = shuffledCards.pop();
-                        const newTopCardElement = createCard(
-                            newTopCard.condition,
-                            newTopCard
-                        );
-                        board.replaceChild(newTopCardElement, topRowCard);
-                    } else {
-                        // Handle the situation when no cards are left, perhaps by removing the card or showing a message
+                    // Check if shuffledCards is empty
+                    if (shuffledCards.length === 0) {
                         topRowCard.remove();
+                    } else {
+                        // Replace top row card only if it's not the last one
+                        if (shuffledCards.length !== 1) {
+                            const newTopCard = shuffledCards.pop();
+                            const newTopCardElement = createCard(
+                                newTopCard.condition,
+                                newTopCard
+                            );
+                            board.replaceChild(newTopCardElement, topRowCard);
+                        }
                     }
                 });
                 // Reset the selectedVegetables array
