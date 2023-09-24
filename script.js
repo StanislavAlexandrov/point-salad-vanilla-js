@@ -13,8 +13,25 @@ document.addEventListener('DOMContentLoaded', function () {
             onions: 0,
         },
     };
+
+    const player2 = {
+        name: 'Player 2',
+        conditions: [],
+        vegetables: {
+            carrots: 0,
+            cabbage: 0,
+            peppers: 0,
+            tomatoes: 0,
+            lettuce: 0,
+            onions: 0,
+        },
+    };
+    let currentPlayer = player1;
+
     const player1DisplayElement = document.getElementById('player1Display');
     updatePlayerDisplay(player1, player1DisplayElement);
+    const player2DisplayElement = document.getElementById('player2Display');
+    updatePlayerDisplay(player2, player2DisplayElement);
 
     const doubleSidedCards = [
         { vegetable: 'carrots', condition: '2 lettuces = 5 points' },
@@ -103,25 +120,34 @@ document.addEventListener('DOMContentLoaded', function () {
         const cardData = JSON.parse(cardElement.dataset.info);
         const columnIndex = Array.from(board.children).indexOf(cardElement) % 3;
 
+        let shouldSwitchPlayer = false;
+
         if (cardElement.textContent === cardData.condition) {
             // Handle the scoring condition card
-            const newCard = shuffledCards.pop();
-            const newCardElement = createCard(newCard.condition, newCard);
-            board.replaceChild(newCardElement, cardElement);
+            if (shuffledCards.length > 0) {
+                const newCard = shuffledCards.pop();
+                const newCardElement = createCard(newCard.condition, newCard);
+                board.replaceChild(newCardElement, cardElement);
+            } else {
+                // Handle the situation when no cards are left, perhaps by removing the card or showing a message
+                cardElement.remove();
+            }
             // Add condition to player1 and update display
-            player1.conditions.push(cardData.condition);
+            currentPlayer.conditions.push(cardData.condition);
+            shouldSwitchPlayer = true; // Set to true to switch the player after taking a condition card
         } else {
             // Handle the vegetable cards
             selectedVegetables.push({ cardElement, columnIndex });
             cardElement.style.color = 'green';
 
             if (selectedVegetables.length === 2) {
+                shouldSwitchPlayer = true;
                 // Add vegetables to player1
                 selectedVegetables.forEach((selected) => {
                     const vegetable = JSON.parse(
                         selected.cardElement.dataset.info
                     ).vegetable;
-                    player1.vegetables[vegetable]++;
+                    currentPlayer.vegetables[vegetable]++;
                 });
                 // Process the picked vegetables
                 selectedVegetables.forEach((selected) => {
@@ -143,14 +169,40 @@ document.addEventListener('DOMContentLoaded', function () {
                 });
                 // Reset the selectedVegetables array
                 selectedVegetables = [];
+                // Switch turns
+
+                shouldSwitchPlayer = true; // Set to true to switch the player after taking two vegetable cards
+            }
+        }
+        // Update player display irrespective of whether a condition or vegetable was selected
+        updatePlayerDisplay(
+            currentPlayer,
+            currentPlayer.name === 'Player 1'
+                ? player1DisplayElement
+                : player2DisplayElement
+        );
+        if (shouldSwitchPlayer) {
+            // Player switching logic
+            if (currentPlayer === player1) {
+                currentPlayer = player2;
+            } else {
+                currentPlayer = player1;
             }
         }
 
-        // Update player display irrespective of whether a condition or vegetable was selected
-        updatePlayerDisplay(player1, player1DisplayElement);
+        const activePlayerElement = document.getElementById(
+            'activePlayerDisplay'
+        );
+        activePlayerElement.textContent = `ACTIVE PLAYER: ${currentPlayer.name}`;
     }
 
-    updatePlayerDisplay(player1, player1DisplayElement);
+    function updateScoreDisplay() {
+        const score = calculateScore(player); // Calculate the score
+        const scoreElement = document.getElementById(
+            player.name === 'Player 1' ? 'score1' : 'score2'
+        );
+        scoreElement.textContent = `${player.name} Score: ${score}`;
+    }
     function updatePlayerDisplay(player, playerDisplayElement) {
         // Clear existing display
         playerDisplayElement.innerHTML = '';
@@ -173,9 +225,12 @@ document.addEventListener('DOMContentLoaded', function () {
             line.textContent = `${vegetable}: ${count}`;
             playerDisplayElement.appendChild(line);
         }
-        const score = calculateScore(player1);
-        const scoreElement = document.getElementById('score'); // Assuming you have an element with the id 'score' to display the player's score
-        scoreElement.textContent = `Score: ${score}`;
+
+        const score = calculateScore(player);
+        const scoreElement = document.getElementById(
+            player.name === 'Player 1' ? 'score1' : 'score2'
+        );
+        scoreElement.textContent = `${player.name} Score: ${score}`;
     }
 });
 
